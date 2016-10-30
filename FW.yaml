@@ -1,0 +1,38 @@
+description: Configuration for Firewall service
+heat_template_version: '2013-05-23'
+resources:
+    Firewall:
+        properties:
+            admin_state_up: true
+            description: Firewall Resource
+            firewall_policy_id:
+                get_resource: Firewall_Policy
+            name: FWaaS
+        type: OS::Neutron::Firewall
+    Firewall_Policy:
+        properties:
+            audited: true
+            description: Firewall Policy
+            firewall_rules:
+            -   get_resource: Rule_1
+            -   get_resource: Rule_2
+            name: firewall_policy
+        type: OS::Neutron::FirewallPolicy
+    Rule_1:
+        properties:
+            action: allow
+            description: ''
+            destination_port: '22'
+            enabled: true
+            name: ''
+            protocol: tcp
+        type: OS::Neutron::FirewallRule
+    Rule_2:
+        properties:
+            action: allow
+            description: ''
+            destination_port: '80'
+            enabled: true
+            name: ''
+            protocol: tcp
+        type: OS::Neutron::FirewallRule

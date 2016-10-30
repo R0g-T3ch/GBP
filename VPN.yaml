@@ -1,0 +1,62 @@
+description: Creates new vpn service - ike + ipsec + vpn service + site-site connection(s)
+heat_template_version: '2013-05-23'
+parameters:
+    ClientAddressPoolCidr:
+        description: Pool from which the ip address is allocated to all connected
+            clients
+        type: string
+    RouterId:
+        description: Router ID
+        type: string
+    ServiceDescription:
+        description: fip;tunnel_local-cidr
+        type: string
+    Subnet:
+        description: Subnet id on which vpn service is launched
+        type: string
+resources:
+    IKEPolicy:
+        properties:
+            auth_algorithm: sha1
+            encryption_algorithm: aes-128
+            ike_version: v1
+            lifetime:
+                units: seconds
+                value: 3600
+            name: IKEPolicy
+            pfs: group5
+            phase1_negotiation_mode: main
+        type: OS::Neutron::IKEPolicy
+    IPsecPolicy:
+        properties:
+            auth_algorithm: sha1
+            encapsulation_mode: tunnel
+            encryption_algorithm: aes-128
+            lifetime:
+                units: seconds
+                value: 3600
+            name: IPsecPolicy
+            pfs: group5
+            transform_protocol: esp
+        type: OS::Neutron::IPsecPolicy
+    SSLVPNConnection:
+        properties:
+            admin_state_up: true
+            client_address_pool_cidr:
+                get_param: ClientAddressPoolCidr
+            credential_id: ''
+            name: vtun0
+            vpnservice_id:
+                get_resource: VPNService
+        type: OS::Neutron::SSLVPNConnection
+    VPNService:
+        properties:
+            admin_state_up: true
+            description:
+                get_param: ServiceDescription
+            name: VPNService
+            router_id:
+                get_param: RouterId
+            subnet_id:
+                get_param: Subnet
+        type: OS::Neutron::VPNService

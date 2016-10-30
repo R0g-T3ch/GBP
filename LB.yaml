@@ -1,0 +1,51 @@
+description: Configuration for Haproxy Neutron Loadbalacer service
+heat_template_version: '2013-05-23'
+parameters:
+    Subnet:
+        description: Pool Subnet CIDR, on which VIP port should be created
+        type: string
+    service_chain_metadata:
+        description: sc metadata
+        type: string
+    vip_ip:
+        description: VIP IP Address
+        type: string
+resources:
+    HealthMonitor:
+        properties:
+            admin_state_up: true
+            delay: 5
+            max_retries: 3
+            timeout: 5
+            type: PING
+        type: OS::Neutron::HealthMonitor
+    LoadBalancer:
+        properties:
+            pool_id:
+                get_resource: LoadBalancerPool
+            protocol_port: 80
+        type: OS::Neutron::LoadBalancer
+    LoadBalancerPool:
+        properties:
+            admin_state_up: true
+            description: Haproxy pool from template
+            lb_method: ROUND_ROBIN
+            monitors:
+            -   get_resource: HealthMonitor
+            name: Haproxy pool
+            protocol: HTTP
+            provider: haproxy_on_vm
+            subnet_id:
+                get_param: Subnet
+            vip:
+                address:
+                    get_param: vip_ip
+                admin_state_up: true
+                connection_limit: -1
+                description:
+                    get_param: service_chain_metadata
+                name: LoadBalancerPool vip
+                protocol_port: 80
+                subnet:
+                    get_param: Subnet
+        type: OS::Neutron::Pool
